@@ -67,9 +67,22 @@ npm run dev
 
 ```
 src/
-├── domain/           # Business logic and entities
-├── application/      # Use cases and ports
-├── infrastructure/   # External implementations
-├── http/            # API endpoints
-└── container.ts     # Composition root
+├── domain/                 # Core business logic
+│   ├── entities/           # Aggregate roots and entities
+│   ├── value-objects/      # Value objects
+│   ├── events/             # Domain events
+│   └── errors/             # Domain-specific errors
+├── application/            # Application layer
+│   ├── use-cases/          # Use case orchestrations
+│   ├── ports/              # Interfaces to external systems
+│   ├── dto/                # Data Transfer Objects
+│   └── errors.ts           # Application-level errors
+├── infrastructure/         # External implementations
+│   ├── persistence/        # Persistence adapters
+│   │   └── in-memory/      # In-memory repositories
+│   ├── http/               # HTTP adapters
+│   │   └── controllers/    # HTTP controllers
+│   └── messaging/          # Messaging/event bus adapters
+├── composition/            # Composition root & DI wiring
+└── shared/                 # Cross-cutting utilities/types
 ```
