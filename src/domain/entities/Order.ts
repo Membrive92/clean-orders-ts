@@ -6,7 +6,10 @@ import { Quantity } from '../value-objects/Quantity.js';
 import { Money } from '../value-objects/Money.js';
 import { OrderLineItem } from '../value-objects/OrderLineItem.js';
 import type { DomainEvent } from '../events/index.js';
-import { OrderCreated, ItemAdded, OrderTotalCalculated, OrderFinalized } from '../events/index.js';
+import { OrderCreated } from '../events/OrderCreated.js';
+import { ItemAdded } from '../events/ItemAdded.js';
+import { OrderTotalCalculated } from '../events/OrderTotalCalculated.js';
+import { OrderFinalized } from '../events/OrderFinalized.js';
 
 export type OrderStatus = 'DRAFT' | 'CONFIRMED' | 'FINALIZED' | 'CANCELLED';
 
