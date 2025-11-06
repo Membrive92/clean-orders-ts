@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Currency, SKU, Quantity, Money } from '../../src/domain/value-objects/index.js';
+import { Currency } from '../../src/domain/value-objects/Currency.js';
+import { SKU } from '../../src/domain/value-objects/SKU.js';
+import { Quantity } from '../../src/domain/value-objects/Quantity.js';
+import { Money } from '../../src/domain/value-objects/Money.js';
 import { Order } from '../../src/domain/entities/Order.js';
 
 describe('Domain - Order', () => {
