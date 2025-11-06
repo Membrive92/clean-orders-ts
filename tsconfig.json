@@ -10,6 +10,14 @@
     "outDir": "dist",
     "rootDir": ".",
     "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@domain/*": ["src/domain/*"],
+      "@application/*": ["src/application/*"],
+      "@infrastructure/*": ["src/infrastructure/*"],
+      "@composition/*": ["src/composition/*"],
+      "@shared/*": ["src/shared/*"]
+    },
     "declaration": true,
     "sourceMap": true,
     "removeComments": false,
