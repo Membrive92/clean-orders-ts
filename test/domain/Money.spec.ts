@@ -63,7 +63,7 @@ describe('Domain - Money (Price)', () => {
       
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error).toBe('Monto debe ser mayor a 0');
+        expect(result.error).toBe('Amount must be greater than 0');
       }
     });
 
@@ -72,7 +72,7 @@ describe('Domain - Money (Price)', () => {
       
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error).toBe('Monto debe tener máximo 2 decimales');
+        expect(result.error).toBe('Amount must have at most 2 decimal places');
       }
     });
 
@@ -164,7 +164,7 @@ describe('Domain - Money (Price)', () => {
           const result = Money.create(0, usdCurrency);
           expect(result.success).toBe(false);
           if (!result.success) {
-            expect(result.error).toBe('Monto debe ser mayor a 0');
+            expect(result.error).toBe('Amount must be greater than 0');
           }
         }
       }
