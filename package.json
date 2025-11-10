@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx main.ts",
+    "dev": "tsx src/main.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
-    "fastify": "^4.28.1"
+    "fastify": "^4.29.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
