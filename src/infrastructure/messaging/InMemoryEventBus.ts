@@ -4,9 +4,9 @@ import type { DomainEvent } from '../../domain/events/index.js';
 import type { EventBus } from '../../application/ports/EventBus.js';
 
 /**
- * Implementación in-memory del EventBus
- * Almacena eventos en memoria y permite suscribirse a ellos
- * Útil para testing y desarrollo sin dependencia de mensajería
+ * In-memory implementation of EventBus
+ * Stores events in memory and allows subscribing to them
+ * Useful for testing and development without messaging dependency
  */
 export class InMemoryEventBus implements EventBus {
   /**
@@ -68,21 +68,21 @@ export class InMemoryEventBus implements EventBus {
   }
 
   /**
-   * Obtener todos los eventos publicados (útil para testing)
+   * Get all published events (useful for testing)
    */
   getEvents(): DomainEvent[] {
     return [...this.events];
   }
 
   /**
-   * Obtener eventos de un tipo específico (útil para testing)
+   * Get events of a specific type (useful for testing)
    */
   getEventsByType(eventType: string): DomainEvent[] {
     return this.events.filter(event => event.eventType === eventType);
   }
 
   /**
-   * Limpiar todos los eventos (útil para testing)
+   * Clear all events (useful for testing)
    */
   clear(): void {
     this.events = [];
@@ -90,7 +90,7 @@ export class InMemoryEventBus implements EventBus {
   }
 
   /**
-   * Obtener cantidad de eventos almacenados (útil para testing)
+   * Get count of stored events (useful for testing)
    */
   size(): number {
     return this.events.length;

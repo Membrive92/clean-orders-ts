@@ -10,8 +10,8 @@ import type { PricingService } from '../ports/PricingService.js';
 import type { EventBus } from '../ports/EventBus.js';
 
 /**
- * Use case para agregar un item a una orden existente
- * Valida, obtiene precios y coordina con el dominio
+ * Use case for adding an item to an existing order
+ * Validates, gets prices and coordinates with the domain
  */
 export class AddItemToOrderUseCase {
   constructor(
@@ -83,10 +83,10 @@ export class AddItemToOrderUseCase {
         return fail(new AppError(validationError));
       }
 
-      // 7. Agregar el item a la orden (validaciones del dominio)
+      // 7. Add the item to the order (domain validations)
       const addItemResult = order.addItem(skuResult.value, quantityResult.value, moneyResult.value);
       if (!addItemResult.success) {
-        // Mapear errores del dominio a tipos específicos
+        // Map domain errors to specific types
         const errorMessage = addItemResult.error;
         if (errorMessage.includes('estado')) {
           const conflictError = new ConflictError(errorMessage);
@@ -123,7 +123,7 @@ export class AddItemToOrderUseCase {
       return ok(undefined);
     } catch (error) {
       const infraError = new InfraError(
-        error instanceof Error ? error.message : 'Error desconocido al agregar item'
+        error instanceof Error ? error.message : 'Unknown error while adding item'
       );
       return fail(new AppError(infraError));
     }

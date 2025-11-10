@@ -30,7 +30,7 @@ export class CreateOrderUseCase {
         return fail(new AppError(validationError));
       }
 
-      // 2. Validar que la moneda es válida (crear value object)
+      // 2. Validate that the currency is valid (create value object)
       const currencyResult = Currency.create(dto.currency);
       if (!currencyResult.success) {
         const validationError = new ValidationError(currencyResult.error);
@@ -75,13 +75,13 @@ export class CreateOrderUseCase {
         }
       }
 
-      // 7. Limpiar eventos de la orden después de publicar
+      // 7. Clear order events after publishing
       order.clearDomainEvents();
 
       return ok({ orderId: order.id });
     } catch (error) {
       const infraError = new InfraError(
-        error instanceof Error ? error.message : 'Error desconocido al crear orden'
+        error instanceof Error ? error.message : 'Unknown error while creating order'
       );
       return fail(new AppError(infraError));
     }

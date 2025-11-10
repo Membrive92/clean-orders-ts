@@ -4,9 +4,9 @@ import type { Order } from '../../../domain/entities/Order.js';
 import type { OrderRepository } from '../../../application/ports/OrderRepository.js';
 
 /**
- * Implementación in-memory del OrderRepository
- * Útil para testing y desarrollo sin dependencia de BD
- * Almacena órdenes en memoria usando un Map
+ * In-memory implementation of OrderRepository
+ * Useful for testing and development without DB dependency
+ * Stores orders in memory using a Map
  */
 export class InMemoryOrderRepository implements OrderRepository {
   private orders: Map<string, Order> = new Map();
@@ -70,14 +70,14 @@ export class InMemoryOrderRepository implements OrderRepository {
   }
 
   /**
-   * Método adicional para limpiar el repositorio (útil en tests)
+   * Additional method to clear the repository (useful in tests)
    */
   clear(): void {
     this.orders.clear();
   }
 
   /**
-   * Método adicional para obtener el número de órdenes almacenadas
+   * Additional method to get the number of stored orders
    */
   size(): number {
     return this.orders.size;

@@ -6,7 +6,7 @@ export class Quantity {
 
   static create(value: number): Result<Quantity, string> {
     if (!Number.isInteger(value)) {
-      return fail('Cantidad debe ser un número entero');
+      return fail('Quantity must be an integer number');
     }
     if (value <= 0) {
       return fail('Cantidad debe ser mayor a 0');

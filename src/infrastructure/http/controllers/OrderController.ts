@@ -6,8 +6,8 @@ import type { CreateOrderDTO } from '../../../application/dtos/CreateOrderDTO.js
 import type { AddItemToOrderDTO } from '../../../application/dtos/AddItemToOrderDTO.js';
 
 /**
- * Controlador de órdenes para Fastify
- * Expone endpoints HTTP para crear órdenes y agregar items
+ * Order controller for Fastify
+ * Exposes HTTP endpoints for creating orders and adding items
  */
 export class OrderController {
   constructor(
@@ -58,7 +58,7 @@ export class OrderController {
 
   /**
    * POST /orders/:orderId/items
-   * Agregar un item a una orden existente
+   * Add an item to an existing order
    */
   async addItemToOrder(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {

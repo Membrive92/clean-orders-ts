@@ -145,7 +145,7 @@ describe('Domain - Order', () => {
       const result = order.addItem(newSkuRes.value, qty, price);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error).toContain('No se pueden agregar items');
+        expect(result.error).toContain('Cannot add items');
       }
     });
 
@@ -160,7 +160,7 @@ describe('Domain - Order', () => {
       const result = order.addItem(newSkuRes.value, qty, price);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error).toContain('No se pueden agregar items');
+        expect(result.error).toContain('Cannot add items');
       }
     });
 

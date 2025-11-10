@@ -8,17 +8,17 @@ export class Money {
 
   static create(amount: number, currency: Currency): Result<Money, string> {
     if (!Number.isFinite(amount)) {
-      return fail('Monto debe ser un número válido');
+      return fail('Amount must be a valid number');
     }
     if (amount < 0) {
       return fail('Monto no puede ser negativo');
     }
     if (amount === 0) {
-      return fail('Monto debe ser mayor a 0');
+      return fail('Amount must be greater than 0');
     }
-    // Máximo 2 decimales
+    // Maximum 2 decimal places
     if (Math.round(amount * 100) / 100 !== amount) {
-      return fail('Monto debe tener máximo 2 decimales');
+      return fail('Amount must have at most 2 decimal places');
     }
     return ok(new Money(amount, currency));
   }

@@ -3,13 +3,13 @@ import type { Result } from '../../shared/result.js';
 import type { PricingService } from '../../application/ports/PricingService.js';
 
 /**
- * Implementación estática del PricingService
- * Retorna precios predefinidos para SKUs de prueba
- * Útil para desarrollo, testing y demostración
+ * Static implementation of PricingService
+ * Returns predefined prices for test SKUs
+ * Useful for development, testing and demonstration
  */
 export class StaticPricingService implements PricingService {
   /**
-   * Catálogo de precios predefinidos
+   * Predefined price catalog
    * Estructura: SKU -> { USD, EUR, MXN, ARS }
    */
   private pricesCatalog: Map<string, Map<string, number>>;
@@ -174,7 +174,7 @@ export class StaticPricingService implements PricingService {
   }
 
   /**
-   * Método para agregar o actualizar precios (útil para testing)
+   * Method to add or update prices (useful for testing)
    */
   setPriceForSku(sku: string, currency: string, price: number): void {
     const upperSku = sku.toUpperCase();
@@ -190,7 +190,7 @@ export class StaticPricingService implements PricingService {
   }
 
   /**
-   * Método para agregar productos (útil para testing)
+   * Method to add products (useful for testing)
    */
   setProductDetails(
     sku: string,

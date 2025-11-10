@@ -1,7 +1,7 @@
 /**
- * Puerto para obtener la hora actual
- * Abstrae cómo se obtiene la fecha/hora (sistema, NTP, mock, etc)
- * Útil para testing y control temporal
+ * Port for getting the current time
+ * Abstracts how date/time is obtained (system, NTP, mock, etc)
+ * Useful for testing and temporal control
  */
 export interface Clock {
   /**

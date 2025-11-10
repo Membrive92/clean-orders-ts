@@ -2,8 +2,8 @@ import type { Result } from '../../shared/result.js';
 import type { Order } from '../../domain/entities/Order.js';
 
 /**
- * Puerto para persistencia de órdenes
- * Abstrae la implementación de cómo se guardan/recuperan órdenes
+ * Port for order persistence
+ * Abstracts the implementation of how orders are saved/retrieved
  */
 export interface OrderRepository {
   /**

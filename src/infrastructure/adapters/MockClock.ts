@@ -1,8 +1,8 @@
 import type { Clock } from '../../application/ports/Clock.js';
 
 /**
- * Implementación mock del Clock para testing
- * Permite controlar la fecha/hora para tests determinísticos
+ * Mock implementation of Clock for testing
+ * Allows controlling date/time for deterministic tests
  */
 export class MockClock implements Clock {
   private mockDate: Date;
@@ -27,7 +27,7 @@ export class MockClock implements Clock {
   }
 
   /**
-   * Avanzar la fecha/hora un número de milisegundos
+   * Advance the date/time by a number of milliseconds
    */
   advance(ms: number): void {
     this.mockDate.setTime(this.mockDate.getTime() + ms);

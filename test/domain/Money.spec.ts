@@ -81,7 +81,7 @@ describe('Domain - Money (Price)', () => {
       
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error).toBe('Monto debe ser un número válido');
+        expect(result.error).toBe('Amount must be a valid number');
       }
     });
 
@@ -90,7 +90,7 @@ describe('Domain - Money (Price)', () => {
       
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error).toBe('Monto debe ser un número válido');
+        expect(result.error).toBe('Amount must be a valid number');
       }
     });
   });

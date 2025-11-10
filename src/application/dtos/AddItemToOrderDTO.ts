@@ -1,6 +1,6 @@
 /**
- * DTO para agregar un item a una orden
- * Datos de entrada del usuario
+ * DTO for adding an item to an order
+ * User input data
  */
 export interface AddItemToOrderDTO {
   orderId: string;

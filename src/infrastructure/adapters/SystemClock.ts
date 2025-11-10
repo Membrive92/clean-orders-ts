@@ -1,8 +1,8 @@
 import type { Clock } from '../../application/ports/Clock.js';
 
 /**
- * Implementación del Clock usando el reloj del sistema
- * Proporciona fecha y hora actual
+ * Clock implementation using system clock
+ * Provides current date and time
  */
 export class SystemClock implements Clock {
   now(): Date {

@@ -34,11 +34,11 @@ export class Order {
     return ok(new Order(id, currency));
   }
 
-  // Agregar item a la orden
+  // Add item to order
   addItem(sku: SKU, quantity: Quantity, unitPrice: Money): Result<void, string> {
-    // Validar que la orden está en estado permitido
+    // Validate that the order is in an allowed state
     if (this.status !== 'DRAFT') {
-      return fail(`No se pueden agregar items a una orden en estado ${this.status}`);
+      return fail(`Cannot add items to an order in ${this.status} state`);
     }
 
     // Validar que la moneda coincida
