@@ -1,119 +1,119 @@
-# Dominio de Órdenes - Arquitectura Limpia
+# Orders Domain - Clean Architecture
 
-## 📋 Descripción General
+## 📋 General Description
 
-Se ha implementado el dominio de un sistema de gestión de órdenes siguiendo **Clean Architecture** con énfasis en **Domain-Driven Design (DDD)**.
+The domain of an order management system has been implemented following **Clean Architecture** with emphasis on **Domain-Driven Design (DDD)**.
 
-### Archivos creados:
+### Created files:
 
-1. **`src/domain/value-objects/index.ts`** - Value Objects con invariantes
-2. **`src/domain/entities/Order.ts`** - Entidad Order (Aggregate Root)
-3. **`src/domain/events/index.ts`** - Eventos de Dominio
-4. **`src/domain/Order.spec.ts`** - Tests (14 tests en verde ✓)
+1. **`src/domain/value-objects/index.ts`** - Value Objects with invariants
+2. **`src/domain/entities/Order.ts`** - Order Entity (Aggregate Root)
+3. **`src/domain/events/index.ts`** - Domain Events
+4. **`test/domain/`** - Tests (46 tests passing ✓)
 
 ---
 
-## 💎 Value Objects (Invariantes Encapsulados)
+## 💎 Value Objects (Encapsulated Invariants)
 
 ### **Currency**
-- Monedas válidas: USD, EUR, MXN, ARS
-- No permite monedas inválidas
-- Inmutable y comparable
+- Valid currencies: USD, EUR, MXN, ARS
+- Does not allow invalid currencies
+- Immutable and comparable
 
 ### **SKU** (Stock Keeping Unit)
-- No vacío (1-50 caracteres)
-- Convierte a mayúsculas automáticamente
-- Trimea espacios en blanco
+- Non-empty (1-50 characters)
+- Automatically converts to uppercase
+- Trims whitespace
 
 ### **Quantity**
-- Entero positivo (1-10000)
-- Rechaza cero, negativos, decimales
-- Operación `add()` crea nueva instancia
+- Positive integer (1-10000)
+- Rejects zero, negative, decimal values
+- `add()` operation creates new instance
 
 ### **Money**
-- Monto + Moneda (patrón Value Object compuesto)
-- Máximo 2 decimales
-- No permite sumar monedas distintas
-- Método `multiply()` para cálculos de líneas
+- Amount + Currency (composite Value Object pattern)
+- Maximum 2 decimal places
+- Does not allow adding different currencies
+- `multiply()` method for line calculations
 
 ### **OrderLineItem**
-- Composición: SKU + Quantity + Money (unitPrice)
-- Calcula subtotal automáticamente
-- Valor object, no mutable
+- Composition: SKU + Quantity + Money (unitPrice)
+- Automatically calculates subtotal
+- Value object, immutable
 
 ---
 
-## 🏗️ Entidad Order (Aggregate Root)
+## 🏗️ Order Entity (Aggregate Root)
 
-### **Responsabilidades:**
-1. ✅ Crear órdenes con validación
-2. ✅ Agregar items (validando moneda, duplicados, estado)
-3. ✅ Calcular total
-4. ✅ Gestionar transiciones de estado (DRAFT → CONFIRMED → FINALIZED)
-5. ✅ Recolectar eventos de dominio
+### **Responsibilities:**
+1. ✅ Create orders with validation
+2. ✅ Add items (validating currency, duplicates, state)
+3. ✅ Calculate total
+4. ✅ Manage state transitions (DRAFT → CONFIRMED → FINALIZED)
+5. ✅ Collect domain events
 
-### **Estados:**
-- `DRAFT` - Recién creada, permite agregar items
-- `CONFIRMED` - Confirmada, items bloqueados
-- `FINALIZED` - Completada
-- `CANCELLED` - Cancelada
+### **States:**
+- `DRAFT` - Newly created, allows adding items
+- `CONFIRMED` - Confirmed, items locked
+- `FINALIZED` - Completed
+- `CANCELLED` - Cancelled
 
-### **Métodos clave:**
+### **Key methods:**
 ```ts
-// Crear
+// Create
 Order.create(id: string, currency: Currency): Result<Order, string>
 
-// Operaciones
+// Operations
 order.addItem(sku: SKU, qty: Quantity, price: Money): Result<void, string>
 order.getTotal(): Result<Money, string>
 order.confirm(): Result<void, string>
 order.finalize(): Result<void, string>
 order.cancel(): Result<void, string>
 
-// Eventos
+// Events
 order.getDomainEvents(): DomainEvent[]
 order.clearDomainEvents(): void
 ```
 
 ---
 
-## 📡 Eventos de Dominio
+## 📡 Domain Events
 
 ### **OrderCreated**
-- Se emite al crear una orden
-- Captura: id y timestamp
+- Emitted when creating an order
+- Captures: id and timestamp
 
 ### **ItemAdded**
-- Se emite cada vez que se agrega un item
-- Captura: sku, quantity, unitPrice
+- Emitted each time an item is added
+- Captures: sku, quantity, unitPrice
 
 ### **OrderTotalCalculated**
-- Se emite al calcular el total
-- Captura: total, moneda
+- Emitted when calculating the total
+- Captures: total, currency
 
 ### **OrderFinalized**
-- Se emite al finalizar la orden
-- Captura: timestamp
+- Emitted when finalizing the order
+- Captures: timestamp
 
 ---
 
-## ✅ Invariantes Implementados
+## ✅ Implemented Invariants
 
-| Invariante | Value Object | Enforcement |
+| Invariant | Value Object | Enforcement |
 |-----------|--------------|------------|
-| Moneda válida | Currency | Constructor privado + `create()` |
-| SKU no vacío | SKU | Validación en `create()` |
-| Cantidad positiva | Quantity | Rango 1-10000 |
-| Monto válido | Money | 2 decimales máx, > 0 |
-| Monedas homogéneas | Order | Validación en `addItem()` |
-| SKUs únicos | Order | Búsqueda ante de agregar |
-| Estado válido | Order | Transiciones permitidas |
+| Valid currency | Currency | Private constructor + `create()` |
+| Non-empty SKU | SKU | Validation in `create()` |
+| Positive quantity | Quantity | Range 1-10000 |
+| Valid amount | Money | 2 decimals max, > 0 |
+| Homogeneous currencies | Order | Validation in `addItem()` |
+| Unique SKUs | Order | Search before adding |
+| Valid state | Order | Allowed transitions |
 
 ---
 
-## 🔄 Patrón Result para Manejo de Errores
+## 🔄 Result Pattern for Error Handling
 
-Todos los métodos retornan `Result<T, E>` (sin excepciones):
+All methods return `Result<T, E>` (no exceptions):
 
 ```ts
 type Result<T, E> = 
@@ -121,56 +121,46 @@ type Result<T, E> =
   | { success: false; error: E; isSuccess: false; isFailure: true }
 ```
 
-**Ventajas:**
-- ✅ Errores explícitos en el tipo
-- ✅ Sin excepciones sorpresa
-- ✅ Fácil de testear
-- ✅ Composable con `map` / `flatMap`
+**Advantages:**
+- ✅ Explicit errors in the type
+- ✅ No surprise exceptions
+- ✅ Easy to test
+- ✅ Composable with `map` / `flatMap`
 
 ---
 
-## 🧪 Tests (14 casos cubiertos)
+## 🧪 Tests (46 cases covered)
 
 ```
-✓ Currency Value Object (2 tests)
-  - creates a valid currency
-  - rejects invalid currency
+✓ Money (Price) Value Object (21 tests)
+  - Creation validation, arithmetic operations
+  - Edge cases and boundary conditions
+  - Currency consistency and immutability
 
-✓ SKU Value Object (2 tests)
-  - creates a valid SKU
-  - rejects empty SKU
-
-✓ Quantity Value Object (2 tests)
-  - creates a valid quantity
-  - rejects zero or negative quantity
-
-✓ Money Value Object (2 tests)
-  - creates valid money
-  - rejects negative amount
-
-✓ Order Aggregate Root (6 tests)
-  - creates a new order with DRAFT status
-  - adds an item to the order
-  - calculates order total correctly
-  - confirms order
-  - finalizes order
-  - prevents duplicate SKUs
+✓ Order Aggregate Root (25 tests)
+  - State transitions and business rules
+  - Item management and validation
+  - Total calculation and currency consistency
+  - Domain events and lifecycle management
 ```
 
 ---
 
-## 🎯 Próximos Pasos
+## 🎯 Implementation Status
 
-1. **Application Layer**: Casos de uso (CreateOrderUseCase, AddItemUseCase)
-2. **Ports**: Interfaces para repositorio, servicio de precios
-3. **Infrastructure**: Implementaciones (InMemoryRepository, etc)
-4. **HTTP Controllers**: Endpoints REST
+1. ✅ **Application Layer**: Use cases (CreateOrderUseCase, AddItemToOrderUseCase)
+2. ✅ **Ports**: Interfaces for repository, pricing service, event bus
+3. ✅ **Infrastructure**: Implementations (InMemoryRepository, StaticPricingService, etc)
+4. ✅ **HTTP Controllers**: REST endpoints with Fastify
+5. ✅ **Composition Root**: Dependency injection container
+6. ✅ **Comprehensive Testing**: 58 tests including acceptance tests
 
 ---
 
-## 📦 Sin dependencias externas
+## 📦 No external dependencies in domain
 
-- ✅ Puro TypeScript
-- ✅ Sin frameworks en dominio
-- ✅ Sin I/O (BD, HTTP)
-- ✅ Fácil de testear y reutilizar
+- ✅ Pure TypeScript
+- ✅ No frameworks in domain
+- ✅ No I/O (DB, HTTP)
+- ✅ Easy to test and reuse
+- ✅ Clean Architecture principles enforced
