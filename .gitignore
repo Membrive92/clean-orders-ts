@@ -6,8 +6,7 @@ dist/
 build/
 *.tsbuildinfo
 
-# Environment variables
-.env
+# Environment variables (keeping .env for learning project)
 .env.local
 .env.*.local
 
