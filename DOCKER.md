@@ -62,7 +62,7 @@ The database is automatically initialized with:
 ```
 docker-compose.yml     # Docker services definition
 .env                  # Environment variables (create your own)
-init-db/
+db/
   └── 01-init.sql     # Database initialization script
 ```
 
@@ -81,7 +81,7 @@ DB_PASSWORD=postgres
 ```
 
 ### Database Initialization
-Add additional SQL scripts to `init-db/` directory. They will be executed in alphabetical order.
+Add additional SQL scripts to `db/` directory. They will be executed in alphabetical order.
 
 ## 🚨 Health Check
 
