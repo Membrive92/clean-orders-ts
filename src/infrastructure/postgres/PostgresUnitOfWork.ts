@@ -9,6 +9,7 @@ import { Currency } from '../../domain/value-objects/Currency.js';
 import { SKU } from '../../domain/value-objects/SKU.js';
 import { Quantity } from '../../domain/value-objects/Quantity.js';
 import { Money } from '../../domain/value-objects/Money.js';
+import { OutboxEventBus } from '../messaging/OutboxEventBus.js';
 
 const { Pool } = pg;
 
@@ -262,9 +263,10 @@ export class PostgresUnitOfWork implements UnitOfWork {
       // Begin transaction
       await client.query('BEGIN');
 
-      // Create transactional repositories
+      // Create transactional repositories and services
       const repositories: Repositories = {
         orders: new TransactionalOrderRepository(client),
+        eventBus: new OutboxEventBus(client),
       };
 
       // Execute work

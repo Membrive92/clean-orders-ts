@@ -1,5 +1,6 @@
 import type { Result } from '../../shared/result.js';
 import type { OrderRepository } from './OrderRepository.js';
+import type { EventBus } from './EventBus.js';
 
 /**
  * Unit of Work pattern port
@@ -14,8 +15,9 @@ export interface UnitOfWork {
 }
 
 /**
- * Repositories available within a Unit of Work
+ * Repositories and services available within a Unit of Work
  */
 export interface Repositories {
   orders: OrderRepository;
+  eventBus: EventBus;
 }
