@@ -6,15 +6,18 @@
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed.ts",
     "db:reset": "npm run db:down && npm run db:up && timeout /t 5 /nobreak && npm run db:migrate",
+    "db:setup": "npm run db:up && npm run db:seed",
     "worker:outbox": "tsx src/infrastructure/messaging/OutboxDispatcher.ts",
     "dev": "tsx src/main.ts",
+    "dev:inmemory": "cross-env USE_INMEMORY=true tsx src/main.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "test": "vitest run",
     "test:unit": "vitest run test/domain test/acceptance",
     "test:integration": "vitest run test/integration",
-    "test:all": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },
   "dependencies": {
@@ -28,8 +31,9 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/pg": "^8.11.10",
+    "cross-env": "^10.1.0",
     "eslint": "^9.0.0",
-    "tsx": "^4.15.7",
+    "tsx": "^4.20.6",
     "typescript": "^5.5.0",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^2.0.0"
