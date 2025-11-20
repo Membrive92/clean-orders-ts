@@ -36,7 +36,12 @@ async function executeMigration(pool: pg.Pool, migration: MigrationFile): Promis
   console.log(`\n📄 Executing migration: ${migration.filename}`);
   
   try {
-    const sql = await readFile(migration.path, 'utf-8');
+    let sql = await readFile(migration.path, 'utf-8');
+    
+    // Remove BOM if present (common in Windows)
+    if (sql.charCodeAt(0) === 0xFEFF) {
+      sql = sql.substring(1);
+    }
     
     // Execute the SQL file content
     await pool.query(sql);

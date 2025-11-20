@@ -17,6 +17,9 @@
     "test": "vitest run",
     "test:unit": "vitest run test/domain test/acceptance",
     "test:integration": "vitest run test/integration",
+    "test:e2e": "vitest run test/e2e",
+    "test:contract": "vitest run test/contract",
+    "test:all": "vitest run test/domain test/acceptance test/integration test/e2e test/contract",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },

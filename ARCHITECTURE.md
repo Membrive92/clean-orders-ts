@@ -492,11 +492,17 @@ clean-orders-ts/
         ├── acceptance/                     # Use case tests (in-memory)
         │   ├── CreateOrder.spec.ts
         │   └── AddItemToOrder.spec.ts
-        └── integration/                    # Integration tests (PostgreSQL)
-            ├── postgres/
-            │   └── PostgresOrderRepository.spec.ts
-            └── messaging/
-                └── OutboxPattern.spec.ts
+        ├── integration/                    # Integration tests (PostgreSQL)
+        │   ├── postgres/
+        │   │   └── PostgresOrderRepository.spec.ts
+        │   └── messaging/
+        │       └── OutboxPattern.spec.ts
+        ├── e2e/                           # End-to-end HTTP tests
+        │   ├── test-helpers.ts
+        │   ├── orders.e2e.spec.ts
+        │   └── order-items.e2e.spec.ts
+        └── contract/                      # API contract tests
+            └── order-api.contract.spec.ts
 ```
 
 ## Dependency Flow
@@ -783,7 +789,90 @@ describe('PostgresOrderRepository', () => {
 });
 ```
 
-### 4. Manual API Testing
+### 4. E2E Tests (HTTP Layer)
+
+**Location:** `test/e2e/`
+**Speed:** ⚡⚡⚡ Slower (spins up server + database)
+**Dependencies:** PostgreSQL + Fastify server
+
+```bash
+# Start PostgreSQL first
+npm run db:up
+npm run db:migrate
+
+# Run E2E tests (in separate terminal)
+npm run test:e2e
+```
+
+Test complete HTTP request-response flows:
+
+```typescript
+// test/e2e/orders.e2e.spec.ts
+describe('Orders E2E Tests', () => {
+  let server: TestServer;
+  let client: E2EClient;
+
+  beforeAll(async () => {
+    server = await startTestServer();
+    client = new E2EClient(server.url);
+  });
+
+  afterAll(async () => {
+    await server.cleanup();
+  });
+
+  it('should create order via HTTP', async () => {
+    const { status, body } = await client.post('/orders', {
+      customerName: 'John Doe',
+      customerEmail: 'john@example.com',
+    });
+
+    expect(status).toBe(201);
+    expect(body).toHaveProperty('id');
+  });
+});
+```
+
+### 5. Contract Tests (API Schema Validation)
+
+**Location:** `test/contract/`
+**Speed:** ⚡⚡⚡ Slower (uses server + database)
+**Dependencies:** PostgreSQL + Fastify server + Zod
+
+```bash
+# Start PostgreSQL first
+npm run db:up
+npm run db:migrate
+
+# Run contract tests
+npm run test:contract
+```
+
+Validate API responses match expected schemas:
+
+```typescript
+// test/contract/order-api.contract.spec.ts
+const OrderSchema = z.object({
+  id: z.string().uuid(),
+  customerName: z.string().min(1),
+  customerEmail: z.string().email(),
+  status: z.enum(['DRAFT', 'CONFIRMED', 'FINALIZED']),
+  items: z.array(z.object({
+    productName: z.string().min(1),
+    quantity: z.number().int().positive(),
+    unitPrice: z.number().positive(),
+  })),
+});
+
+it('should return response matching Order schema', async () => {
+  const { body } = await client.get(`/orders/${orderId}`);
+  
+  const result = OrderSchema.safeParse(body);
+  expect(result.success).toBe(true);
+});
+```
+
+### 6. Manual API Testing
 
 #### Option A: Separate Terminal
 
@@ -809,14 +898,27 @@ npm run dev
 ### Test Coverage
 
 ```bash
+# Run all tests
+npm test
+
+# Run specific test types
+npm run test:unit          # Domain + Acceptance
+npm run test:integration   # PostgreSQL
+npm run test:e2e          # HTTP end-to-end
+npm run test:contract     # API schema validation
+npm run test:all          # All test types
+
+# Run with coverage
 npm run test:coverage
 ```
 
-Current coverage: **74/74 tests passing**
+**Comprehensive Test Suite:**
 
-- Domain: 46 tests
-- Acceptance: 12 tests
-- Integration: 16 tests
+- **Domain Tests**: 46 tests (entities, value objects)
+- **Acceptance Tests**: 12 tests (use cases with in-memory)
+- **Integration Tests**: 16 tests (PostgreSQL + outbox)
+- **E2E Tests**: HTTP request-response flows
+- **Contract Tests**: API schema validation
 
 ## Example Flows
 

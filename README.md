@@ -79,12 +79,50 @@ REST API with Fastify:
 
 ## Testing
 
-The project includes comprehensive test coverage (74 tests):
+The project includes comprehensive test coverage across multiple test types:
 
-- **Domain Tests**: Unit tests for entities (Order) and value objects (Money, SKU, Quantity, Currency)
-- **Acceptance Tests**: End-to-end tests for use cases (CreateOrder, AddItemToOrder)
-- **Integration Tests**: PostgreSQL repository tests and Outbox pattern tests
-- **All tests pass**: ✅ 74/74 passing with both PostgreSQL and in-memory implementations
+### Test Types
+
+- **Domain Tests** (`test/domain/`): Unit tests for entities (Order) and value objects (Money, SKU, Quantity, Currency)
+- **Acceptance Tests** (`test/acceptance/`): Use case tests (CreateOrder, AddItemToOrder) with in-memory adapters
+- **Integration Tests** (`test/integration/`): PostgreSQL repository tests and Outbox pattern tests
+- **E2E Tests** (`test/e2e/`): End-to-end HTTP tests for complete request-response flows
+- **Contract Tests** (`test/contract/`): API schema validation using Zod to ensure response contracts
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run specific test suites
+npm run test:unit          # Domain + Acceptance tests
+npm run test:integration   # PostgreSQL integration tests
+npm run test:e2e          # End-to-end HTTP tests
+npm run test:contract     # API contract validation tests
+npm run test:all          # All test types sequentially
+
+# Run with coverage
+npm run test:coverage
+
+# Watch mode for development
+npm run test:watch
+```
+
+### E2E Test Requirements
+
+E2E tests require a running PostgreSQL database:
+
+```bash
+# Start database
+npm run db:up
+
+# Wait a few seconds, then migrate
+npm run db:migrate
+
+# Run E2E tests (in a separate terminal)
+npm run test:e2e
+```
 
 ## Getting Started
 
