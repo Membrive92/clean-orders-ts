@@ -26,7 +26,7 @@ export class AddItemToOrderUseCase {
     this.logger.info('Executing AddItemToOrderUseCase', { orderId: dto.orderId, sku: dto.sku, quantity: dto.quantity });
 
     try {
-      // 1. Validar el DTO
+      // 1. Validate the DTO
       if (!dto.orderId || dto.orderId.trim().length === 0) {
         const validationError = new ValidationError('orderId es requerido');
         return fail(new AppError(validationError));
@@ -82,7 +82,7 @@ export class AddItemToOrderUseCase {
         return fail(new AppError(infraError));
       }
 
-      // 6. Crear Money con el precio obtenido
+      // 6. Create Money with obtained price
       const moneyResult = Money.create(priceResult.value, order.currency);
       if (!moneyResult.success) {
         const validationError = new ValidationError(moneyResult.error);

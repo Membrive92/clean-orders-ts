@@ -36,10 +36,10 @@ export class InMemoryEventBus implements EventBus {
 
   async publishSingle(event: DomainEvent): Promise<Result<void, string>> {
     try {
-      // Almacenar el evento
+      // Store the event
       this.events.push(event);
 
-      // Ejecutar handlers suscritos a este tipo de evento
+      // Execute handlers subscribed to this event type
       const handlers = this.subscribers.get(event.eventType);
       if (handlers) {
         const promises = Array.from(handlers).map(handler => handler(event));

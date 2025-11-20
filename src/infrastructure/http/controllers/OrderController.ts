@@ -19,7 +19,7 @@ export class OrderController {
 
   /**
    * POST /orders
-   * Crear una nueva orden
+   * Create a new order
    */
   async createOrder(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const { orderId, currency } = request.body as CreateOrderDTO;
@@ -27,17 +27,17 @@ export class OrderController {
     this.logger.info('Creating order', { orderId, currency });
 
     try {
-      // Validar datos de entrada
+      // Validate input data
       if (!orderId || !currency) {
         this.logger.warn('Validation failed: missing required fields', { orderId, currency });
         reply.code(400).send({
           error: 'VALIDATION_ERROR',
-          message: 'orderId y currency son requeridos',
+          message: 'orderId and currency are required',
         });
         return;
       }
 
-      // Ejecutar use case
+      // Execute use case
       const result = await this.createOrderUseCase.execute({ orderId, currency });
 
       if (!result.success) {
@@ -81,17 +81,17 @@ export class OrderController {
     this.logger.info('Adding item to order', { orderId, sku, quantity });
 
     try {
-      // Validar datos de entrada
+      // Validate input data
       if (!orderId || !sku || quantity === undefined) {
         this.logger.warn('Validation failed: missing required fields', { orderId, sku, quantity });
         reply.code(400).send({
           error: 'VALIDATION_ERROR',
-          message: 'orderId, sku y quantity son requeridos',
+          message: 'orderId, sku and quantity are required',
         });
         return;
       }
 
-      // Ejecutar use case
+      // Execute use case
       const result = await this.addItemToOrderUseCase.execute({
         orderId,
         sku,

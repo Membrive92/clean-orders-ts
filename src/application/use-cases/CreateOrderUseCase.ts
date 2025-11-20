@@ -9,8 +9,8 @@ import type { EventBus } from '../ports/EventBus.js';
 import type { Logger } from '../../infrastructure/loggin/PinoLogger.js';
 
 /**
- * Use case para crear una nueva orden
- * Implementa la orquestación entre dominio e infraestructura
+ * Use case to create a new order
+ * Implements orchestration between domain and infrastructure
  */
 export class CreateOrderUseCase {
   constructor(
@@ -23,7 +23,7 @@ export class CreateOrderUseCase {
     this.logger.info('Executing CreateOrderUseCase', { orderId: dto.orderId, currency: dto.currency });
 
     try {
-      // 1. Validar el DTO
+      // 1. Validate the DTO
       if (!dto.orderId || dto.orderId.trim().length === 0) {
         this.logger.warn('Validation failed: orderId is required');
         const validationError = new ValidationError('orderId es requerido');
@@ -55,7 +55,7 @@ export class CreateOrderUseCase {
         return fail(new AppError(conflictError));
       }
 
-      // 4. Crear la orden en el dominio
+      // 4. Create the order in the domain
       const orderResult = Order.create(dto.orderId, currencyResult.value);
       if (!orderResult.success) {
         const validationError = new ValidationError(orderResult.error);

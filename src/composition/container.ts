@@ -14,8 +14,8 @@ import { MessagingFactory } from '../infrastructure/messaging/MessagingFactory.j
 import { config } from './config.js';
 
 /**
- * Interfaz de dependencias que agrupa puertos y use cases
- * Extiende ServerDependencies con los use cases
+ * Dependencies interface that groups ports and use cases
+ * Extends ServerDependencies with use cases
  */
 export interface Dependencies extends ServerDependencies {
   // Ports
@@ -32,9 +32,9 @@ export interface Dependencies extends ServerDependencies {
 }
 
 /**
- * Construir el contenedor de dependencias completo
- * Factory function que crea e inyecta todas las dependencias
- * Alterna entre in-memory y PostgreSQL según configuración
+ * Build complete dependency container
+ * Factory function that creates and injects all dependencies
+ * Switches between in-memory and PostgreSQL based on configuration
  */
 export function buildContainer(): Dependencies {
   const logger = new PinoLogger({ name: 'container' });

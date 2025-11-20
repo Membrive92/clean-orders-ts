@@ -109,13 +109,13 @@ export class StaticPricingService implements PricingService {
       const upperSku = sku.toUpperCase();
       const upperCurrency = currency.toUpperCase();
 
-      // Validar que el SKU existe
+      // Validate that SKU exists
       const pricesBySku = this.pricesCatalog.get(upperSku);
       if (!pricesBySku) {
-        return fail(`SKU ${upperSku} no encontrado en catálogo de precios`);
+        return fail(`SKU ${upperSku} not found in price catalog`);
       }
 
-      // Validar que existe el precio en esa moneda
+      // Validate that price exists in that currency
       const price = pricesBySku.get(upperCurrency);
       if (price === undefined) {
         return fail(

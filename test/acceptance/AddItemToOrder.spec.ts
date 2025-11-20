@@ -208,7 +208,7 @@ describe('Acceptance Test - Add Item to Order', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.name).toBe('AppError');
-        expect(result.error.message).toContain('SKU NON-EXISTENT-SKU no encontrado');
+        expect(result.error.message).toContain('SKU NON-EXISTENT-SKU not found');
       }
     });
 

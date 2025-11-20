@@ -1,6 +1,30 @@
 # Order Microservice
 
-A clean architecture implementation of an order management microservice.
+A production-ready clean architecture implementation of an order management microservice with PostgreSQL, event sourcing, and comprehensive testing.
+
+## Key Features
+
+✅ **Clean Architecture** - Clear separation of concerns across domain, application, and infrastructure layers  
+✅ **PostgreSQL Integration** - Production database with connection pooling and migrations  
+✅ **In-Memory Mode** - Fast testing without database dependencies  
+✅ **Transactional Outbox Pattern** - Reliable event publishing with exactly-once semantics  
+✅ **Graceful Shutdown** - Proper resource cleanup and signal handling  
+✅ **Structured Logging** - Pino logger with development and production modes  
+✅ **Type Safety** - Full TypeScript with strict mode  
+✅ **Comprehensive Testing** - 74 tests covering domain, application, and integration  
+✅ **Environment-Based Configuration** - Easy switching between implementations  
+✅ **Domain Events** - Event-driven architecture with domain event publishing  
+
+## Tech Stack
+
+- **Runtime**: Node.js 18+ with ES Modules
+- **Language**: TypeScript 5.6+ (strict mode)
+- **Web Framework**: Fastify 4.x (fast, low overhead)
+- **Database**: PostgreSQL 16 with pg driver
+- **Logging**: Pino (high-performance structured logging)
+- **Testing**: Vitest 2.x (fast unit and integration tests)
+- **Validation**: Zod (runtime schema validation)
+- **Containerization**: Docker Compose
 
 ## Architecture Overview
 
@@ -29,26 +53,38 @@ Use cases and application logic:
 
 External implementations:
 
-- **InMemory Repository**: In-memory implementation of order repository
-- **Static Pricing**: Simple pricing service with static prices
-- **No-op Event Bus**: Event bus implementation for testing/development
+- **PostgreSQL Repository**: Production-ready implementation with connection pooling
+- **InMemory Repository**: Fast in-memory implementation for testing
+- **Static Pricing Service**: Static pricing catalog for development
+- **Outbox Pattern**: Transactional outbox for reliable event publishing
+- **Event Bus**: In-memory event bus for domain events
+- **Pino Logger**: Structured logging with development and production modes
+- **DatabaseFactory**: Singleton for managing PostgreSQL connections
+- **MessagingFactory**: Factory for event bus and outbox dispatcher
 
 ### HTTP Layer
 
-REST API endpoints:
+REST API with Fastify:
 
-- **Fastify**: Minimal endpoints using Fastify framework for order operations
+- **Fastify Server**: Fast HTTP server with automatic error handling
+- **OrderController**: RESTful endpoints for order operations
+- **Global Error Handler**: Centralized error handling for all routes
+- **Health Check**: Endpoint for monitoring service availability
 
 ### Composition Root
 
-- **container.ts**: Dependency injection container that wires all components together
+- **container.ts**: Dependency injection container with environment-based switching
+- **config.ts**: Environment validation with Zod
+- **main.ts**: Application entry point with graceful shutdown
 
 ## Testing
 
-The project includes:
+The project includes comprehensive test coverage (74 tests):
 
-- **Domain Tests**: Unit tests for domain entities and value objects
-- **Acceptance Tests**: End-to-end tests for use cases
+- **Domain Tests**: Unit tests for entities (Order) and value objects (Money, SKU, Quantity, Currency)
+- **Acceptance Tests**: End-to-end tests for use cases (CreateOrder, AddItemToOrder)
+- **Integration Tests**: PostgreSQL repository tests and Outbox pattern tests
+- **All tests pass**: ✅ 74/74 passing with both PostgreSQL and in-memory implementations
 
 ## Getting Started
 
@@ -200,23 +236,41 @@ curl http://localhost:3000/orders
 
 ### Available npm Scripts
 
+#### Database Commands
+
 | Command | Description |
 |---------|-------------|
-| `npm run db:up` | Start PostgreSQL container |
-| `npm run db:down` | Stop PostgreSQL container |
-| `npm run db:migrate` | Run database migrations |
-| `npm run db:seed` | Populate database with sample data |
-| `npm run db:setup` | Start DB and seed (quick setup) |
-| `npm run db:reset` | Reset database completely |
-| `npm run dev` | Start dev server with PostgreSQL |
-| `npm run dev:inmemory` | Start dev server without database |
-| `npm run build` | Build for production |
-| `npm start` | Start production server |
-| `npm test` | Run all tests |
-| `npm run test:unit` | Run unit & acceptance tests |
-| `npm run test:integration` | Run integration tests |
-| `npm run test:coverage` | Run tests with coverage |
-| `npm run test:watch` | Run tests in watch mode |
+| `npm run db:up` | Start PostgreSQL container (port 54320) |
+| `npm run db:down` | Stop and remove PostgreSQL container |
+| `npm run db:migrate` | Run database migrations manually |
+| `npm run db:seed` | Populate database with 3 orders and 4 items |
+| `npm run db:setup` | **Quick setup**: Start DB and seed in one command |
+| `npm run db:reset` | Reset database: down, up, wait, migrate |
+
+#### Development Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server with PostgreSQL (hot reload) |
+| `npm run dev:inmemory` | Start dev server with in-memory repositories |
+| `npm run build` | Compile TypeScript to JavaScript (dist/) |
+| `npm start` | Start production server from dist/ |
+
+#### Testing Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm test` | Run all 74 tests (domain + acceptance + integration) |
+| `npm run test:unit` | Run only unit and acceptance tests (no DB) |
+| `npm run test:integration` | Run only integration tests (requires PostgreSQL) |
+| `npm run test:coverage` | Run tests with coverage report |
+| `npm run test:watch` | Run tests in watch mode for development |
+
+#### Worker Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run worker:outbox` | Start outbox dispatcher worker (polls and publishes events) |
 
 ## API Endpoints
 
@@ -247,7 +301,19 @@ POST /orders
 Content-Type: application/json
 
 {
-  "currency": "USD"  # USD, EUR, MXN, ARS
+  "orderId": "order-123",      # Optional: auto-generated if not provided
+  "currency": "USD"            # Required: USD, EUR, MXN, ARS
+}
+```
+
+Response:
+```json
+{
+  "id": "order-123",
+  "currency": "USD",
+  "status": "DRAFT",
+  "items": [],
+  "total": { "amount": 0, "currency": "USD" }
 }
 ```
 
@@ -258,8 +324,25 @@ POST /orders/:orderId/items
 Content-Type: application/json
 
 {
-  "sku": "LAPTOP-PRO-15",
-  "quantity": 2
+  "sku": "LAPTOP-PRO-15",      # Required: Product SKU
+  "quantity": 2                # Required: 1-10000
+}
+```
+
+Response:
+```json
+{
+  "id": "order-123",
+  "currency": "USD",
+  "status": "DRAFT",
+  "items": [
+    {
+      "sku": "LAPTOP-PRO-15",
+      "quantity": 2,
+      "unitPrice": { "amount": 1299.99, "currency": "USD" }
+    }
+  ],
+  "total": { "amount": 2599.98, "currency": "USD" }
 }
 ```
 
@@ -269,38 +352,78 @@ Content-Type: application/json
 POST /orders/:orderId/confirm
 ```
 
+Response:
+```json
+{
+  "id": "order-123",
+  "status": "CONFIRMED",
+  ...
+}
+```
+
+### Available Products (Static Pricing)
+
+| SKU | USD | EUR | MXN | ARS |
+|-----|-----|-----|-----|-----|
+| `LAPTOP-PRO-15` | $1,299.99 | €1,199.99 | $25,999 | $520,000 |
+| `MOUSE-WIRELESS` | $29.99 | €27.50 | $599 | $12,000 |
+| `KEYBOARD-MECHANICAL` | $149.99 | €139.99 | $2,999 | $60,000 |
+| `MONITOR-4K-27` | $449.99 | €399.99 | $8,999 | $180,000 |
+
 ### Example with PowerShell
 
 **⚠️ Important:** Run these commands in a **separate PowerShell terminal** (not the same one running the server) to avoid signal conflicts.
 
 ```powershell
-# Create order
+# Create order with auto-generated ID
 $body = @{ currency = "USD" } | ConvertTo-Json
 $order = Invoke-RestMethod -Uri "http://localhost:3000/orders" -Method POST -Body $body -ContentType "application/json"
+Write-Host "Created order: $($order.id)"
 
-# Add item
-$itemBody = @{ sku = "LAPTOP-PRO-15"; quantity = 2 } | ConvertTo-Json
-Invoke-RestMethod -Uri "http://localhost:3000/orders/$($order.id)/items" -Method POST -Body $itemBody -ContentType "application/json"
+# Add multiple items
+$item1 = @{ sku = "LAPTOP-PRO-15"; quantity = 1 } | ConvertTo-Json
+$order = Invoke-RestMethod -Uri "http://localhost:3000/orders/$($order.id)/items" -Method POST -Body $item1 -ContentType "application/json"
+
+$item2 = @{ sku = "MOUSE-WIRELESS"; quantity = 2 } | ConvertTo-Json
+$order = Invoke-RestMethod -Uri "http://localhost:3000/orders/$($order.id)/items" -Method POST -Body $item2 -ContentType "application/json"
+
+Write-Host "Order total: $($order.total.amount) $($order.total.currency)"
 
 # Confirm order
-Invoke-RestMethod -Uri "http://localhost:3000/orders/$($order.id)/confirm" -Method POST
+$confirmedOrder = Invoke-RestMethod -Uri "http://localhost:3000/orders/$($order.id)/confirm" -Method POST
+Write-Host "Order status: $($confirmedOrder.status)"
 ```
 
 ### Example with curl
 
 ```bash
-# Create order
-curl -X POST http://localhost:3000/orders \
-  -H "Content-Type: application/json" \
-  -d '{"currency":"USD"}'
+# Health check
+curl http://localhost:3000/health
 
-# Add item
-curl -X POST http://localhost:3000/orders/{orderId}/items \
+# List all orders
+curl http://localhost:3000/orders
+
+# Create order
+ORDER_ID=$(curl -X POST http://localhost:3000/orders \
   -H "Content-Type: application/json" \
-  -d '{"sku":"LAPTOP-PRO-15","quantity":2}'
+  -d '{"currency":"USD"}' | jq -r '.id')
+
+echo "Created order: $ORDER_ID"
+
+# Add items
+curl -X POST http://localhost:3000/orders/$ORDER_ID/items \
+  -H "Content-Type: application/json" \
+  -d '{"sku":"LAPTOP-PRO-15","quantity":1}'
+
+curl -X POST http://localhost:3000/orders/$ORDER_ID/items \
+  -H "Content-Type: application/json" \
+  -d '{"sku":"MOUSE-WIRELESS","quantity":2}'
+
+# Get order details
+curl http://localhost:3000/orders/$ORDER_ID | jq
 
 # Confirm order
-curl -X POST http://localhost:3000/orders/{orderId}/confirm
+curl -X POST http://localhost:3000/orders/$ORDER_ID/confirm | jq
 ```
 
 ## Database Migrations
@@ -356,16 +479,34 @@ console.log(stats);
 
 ## Graceful Shutdown
 
-The application handles shutdown signals gracefully:
+The application handles shutdown signals gracefully to prevent data loss and connection leaks:
 
-- **SIGTERM/SIGINT**: Stops accepting new requests, closes connections
-- **uncaughtException**: Logs error and performs cleanup
-- **unhandledRejection**: Logs error and performs cleanup
+### Signal Handling
+
+- **SIGTERM/SIGINT (Ctrl+C)**: Initiates graceful shutdown
+  1. Stops accepting new HTTP requests
+  2. Waits for ongoing requests to complete (10s timeout)
+  3. Closes MessagingFactory (event bus and outbox)
+  4. Closes DatabaseFactory (PostgreSQL connection pool)
+  5. Exits cleanly
+
+- **uncaughtException**: Logs critical errors, only exits on system failures (EADDRINUSE, EACCES, etc.)
+- **unhandledRejection**: Logs warnings but continues execution (non-critical)
+
+### Error Handling Strategy
+
+The application differentiates between:
+- **Critical system errors**: Port in use, permission denied → exits
+- **Application errors**: HTTP errors, domain validation → logs and continues
+- **Route errors**: Caught by Fastify global error handler → returns proper HTTP response
 
 Press `Ctrl+C` to trigger graceful shutdown:
 
 ```
+[INFO] SIGINT received, shutting down gracefully
 [INFO] Starting graceful shutdown...
+[INFO] Closing HTTP server...
+[INFO] HTTP server closed
 📨 Closing messaging resources...
 ✅ Messaging resources closed
 🔌 Closing database connections...
@@ -420,4 +561,99 @@ db/
 scripts/
 ├── migrate.ts              # Run migrations
 └── seed.ts                 # Seed database
+test/
+├── domain/                 # Unit tests for entities and VOs
+├── acceptance/             # Use case tests
+└── integration/            # PostgreSQL and outbox tests
 ```
+
+## Troubleshooting
+
+### Port 5432 Already in Use
+
+If you have a local PostgreSQL instance running on port 5432, this project uses port **54320** to avoid conflicts:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54320/clean_orders
+```
+
+### Server Closes Unexpectedly
+
+Make sure to run API tests (curl, Invoke-RestMethod) in a **separate terminal window**. Running them in the same terminal as the server can send signals that trigger shutdown.
+
+### Database Connection Errors
+
+```bash
+# Check if PostgreSQL is running
+docker ps
+
+# View PostgreSQL logs
+docker-compose logs postgres
+
+# Restart database
+npm run db:down
+npm run db:up
+```
+
+### Migration Errors
+
+```bash
+# Reset database completely
+npm run db:reset
+
+# Or manually:
+npm run db:down
+docker volume rm clean-orders-ts_postgres_data
+npm run db:up
+```
+
+### Tests Failing
+
+```bash
+# Ensure PostgreSQL is running for integration tests
+npm run db:up
+
+# Run only unit tests (no DB required)
+npm run test:unit
+
+# Check database state
+npm run db:seed  # Re-seed if needed
+```
+
+### TypeScript Compilation Errors
+
+```bash
+# Clean and rebuild
+rm -rf dist
+npm run build
+
+# Check for type errors
+npx tsc --noEmit
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Commit Convention
+
+This project follows [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` New feature
+- `fix:` Bug fix
+- `docs:` Documentation changes
+- `refactor:` Code refactoring
+- `test:` Test additions or changes
+- `chore:` Build process or auxiliary tool changes
+
+## License
+
+MIT
+
+## Author
+
+Membrive92

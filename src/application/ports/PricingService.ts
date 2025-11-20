@@ -1,23 +1,23 @@
 import type { Result } from '../../shared/result.js';
 
 /**
- * Puerto para obtener precios de productos
- * Abstrae cómo se obtienen los precios (API, BD, caché, etc)
+ * Port to obtain product prices
+ * Abstracts how prices are obtained (API, DB, cache, etc)
  */
 export interface PricingService {
   /**
-   * Obtener el precio de un producto por SKU
-   * Retorna el precio en la moneda especificada
+   * Get the price of a product by SKU
+   * Returns the price in the specified currency
    */
   getPriceForSku(sku: string, currency: string): Promise<Result<number, string>>;
 
   /**
-   * Validar que un SKU existe
+   * Validate that a SKU exists
    */
   skuExists(sku: string): Promise<Result<boolean, string>>;
 
   /**
-   * Obtener descripciones o detalles de productos (opcional)
+   * Get product descriptions or details (optional)
    */
   getProductDetails(sku: string): Promise<Result<{ name: string; description?: string } | null, string>>;
 }

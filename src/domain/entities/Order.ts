@@ -48,7 +48,7 @@ export class Order {
       );
     }
 
-    // Crear el item
+    // Create the item
     const result = OrderLineItem.create(sku, quantity, unitPrice);
     if (!result.success) {
       return fail(result.error);

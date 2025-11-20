@@ -1,6 +1,6 @@
 /**
- * DTO para crear una nueva orden
- * Datos de entrada del usuario
+ * DTO to create a new order
+ * User input data
  */
 export interface CreateOrderDTO {
   orderId: string;
