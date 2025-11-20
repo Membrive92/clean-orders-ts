@@ -6,6 +6,7 @@ import { ValidationError, ConflictError, InfraError, AppError } from '../errors/
 import type { CreateOrderDTO } from '../dtos/CreateOrderDTO.js';
 import type { OrderRepository } from '../ports/OrderRepository.js';
 import type { EventBus } from '../ports/EventBus.js';
+import type { Logger } from '../../infrastructure/loggin/PinoLogger.js';
 
 /**
  * Use case para crear una nueva orden
@@ -14,13 +15,17 @@ import type { EventBus } from '../ports/EventBus.js';
 export class CreateOrderUseCase {
   constructor(
     private orderRepository: OrderRepository,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private logger: Logger
   ) {}
 
   async execute(dto: CreateOrderDTO): Promise<Result<{ orderId: string }, AppError>> {
+    this.logger.info('Executing CreateOrderUseCase', { orderId: dto.orderId, currency: dto.currency });
+
     try {
       // 1. Validar el DTO
       if (!dto.orderId || dto.orderId.trim().length === 0) {
+        this.logger.warn('Validation failed: orderId is required');
         const validationError = new ValidationError('orderId es requerido');
         return fail(new AppError(validationError));
       }
@@ -45,6 +50,7 @@ export class CreateOrderUseCase {
       }
 
       if (existingOrder.value !== null) {
+        this.logger.warn('Order already exists', { orderId: dto.orderId });
         const conflictError = new ConflictError(`Orden con ID ${dto.orderId} ya existe`);
         return fail(new AppError(conflictError));
       }
@@ -68,6 +74,7 @@ export class CreateOrderUseCase {
       // 6. Publicar eventos de dominio
       const events = order.getDomainEvents();
       if (events.length > 0) {
+        this.logger.debug('Publishing domain events', { orderId: dto.orderId, eventCount: events.length });
         const publishResult = await this.eventBus.publish(events);
         if (!publishResult.success) {
           const infraError = new InfraError(publishResult.error);
@@ -78,11 +85,12 @@ export class CreateOrderUseCase {
       // 7. Clear order events after publishing
       order.clearDomainEvents();
 
+      this.logger.info('Order created successfully', { orderId: order.id });
       return ok({ orderId: order.id });
     } catch (error) {
-      const infraError = new InfraError(
-        error instanceof Error ? error.message : 'Unknown error while creating order'
-      );
+      const err = error instanceof Error ? error : new Error('Unknown error while creating order');
+      this.logger.error('Unexpected error in CreateOrderUseCase', err, { orderId: dto.orderId });
+      const infraError = new InfraError(err.message);
       return fail(new AppError(infraError));
     }
   }

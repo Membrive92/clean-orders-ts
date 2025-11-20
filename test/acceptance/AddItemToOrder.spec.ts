@@ -4,6 +4,7 @@ import { CreateOrderUseCase } from '../../src/application/use-cases/CreateOrderU
 import { InMemoryOrderRepository } from '../../src/infrastructure/persistence/in-memory/InMemoryOrderRepository.js';
 import { StaticPricingService } from '../../src/infrastructure/http/StaticPricingService.js';
 import { InMemoryEventBus } from '../../src/infrastructure/messaging/InMemoryEventBus.js';
+import { PinoLogger } from '../../src/infrastructure/loggin/PinoLogger.js';
 import type { CreateOrderDTO } from '../../src/application/dtos/CreateOrderDTO.js';
 import type { AddItemToOrderDTO } from '../../src/application/dtos/AddItemToOrderDTO.js';
 
@@ -20,12 +21,17 @@ describe('Acceptance Test - Add Item to Order', () => {
     pricingService = new StaticPricingService();
     eventBus = new InMemoryEventBus();
 
+    // Initialize loggers for testing
+    const createOrderLogger = new PinoLogger({ name: 'test-create-order', level: 'silent' });
+    const addItemLogger = new PinoLogger({ name: 'test-add-item', level: 'silent' });
+
     // Initialize use cases with dependencies
-    createOrderUseCase = new CreateOrderUseCase(orderRepository, eventBus);
+    createOrderUseCase = new CreateOrderUseCase(orderRepository, eventBus, createOrderLogger);
     addItemToOrderUseCase = new AddItemToOrderUseCase(
       orderRepository,
       pricingService,
-      eventBus
+      eventBus,
+      addItemLogger
     );
   });
 

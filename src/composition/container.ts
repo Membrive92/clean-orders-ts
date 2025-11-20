@@ -8,6 +8,7 @@ import { InMemoryEventBus } from '../infrastructure/messaging/InMemoryEventBus.j
 import { SystemClock } from '../infrastructure/adapters/SystemClock.js';
 import { CreateOrderUseCase } from '../application/use-cases/CreateOrderUseCase.js';
 import { AddItemToOrderUseCase } from '../application/use-cases/AddItemToOrderUseCase.js';
+import { PinoLogger } from '../infrastructure/loggin/PinoLogger.js';
 
 /**
  * Interfaz de dependencias que agrupa puertos y use cases
@@ -35,12 +36,17 @@ export function buildContainer(): Dependencies {
   const eventBus = new InMemoryEventBus();
   const clock = new SystemClock();
 
+  // Logging
+  const createOrderLogger = new PinoLogger({ name: 'create-order-use-case' });
+  const addItemLogger = new PinoLogger({ name: 'add-item-use-case' });
+
   // Application layer - Use Cases
-  const createOrderUseCase = new CreateOrderUseCase(orderRepository, eventBus);
+  const createOrderUseCase = new CreateOrderUseCase(orderRepository, eventBus, createOrderLogger);
   const addItemToOrderUseCase = new AddItemToOrderUseCase(
     orderRepository,
     pricingService,
-    eventBus
+    eventBus,
+    addItemLogger
   );
 
   return {

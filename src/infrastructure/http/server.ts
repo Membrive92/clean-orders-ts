@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import type { Dependencies } from '../../composition/container.js';
 import { OrderController } from './controllers/OrderController.js';
+import { PinoLogger } from '../loggin/PinoLogger.js';
 
 /**
  * Construye el servidor Fastify con las dependencias inyectadas
@@ -15,11 +16,15 @@ export async function buildServer(dependencies: Dependencies) {
     },
   });
 
+  // Crear logger para los controladores
+  const logger = new PinoLogger({ name: 'order-controller' });
+
   // Registrar rutas del controlador con las dependencias inyectadas
   OrderController.registerRoutes(
     fastify,
     dependencies.createOrderUseCase,
-    dependencies.addItemToOrderUseCase
+    dependencies.addItemToOrderUseCase,
+    logger
   );
 
   // Health check endpoint

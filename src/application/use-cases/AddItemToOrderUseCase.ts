@@ -8,6 +8,7 @@ import type { AddItemToOrderDTO } from '../dtos/AddItemToOrderDTO.js';
 import type { OrderRepository } from '../ports/OrderRepository.js';
 import type { PricingService } from '../ports/PricingService.js';
 import type { EventBus } from '../ports/EventBus.js';
+import type { Logger } from '../../infrastructure/loggin/PinoLogger.js';
 
 /**
  * Use case for adding an item to an existing order
@@ -17,10 +18,13 @@ export class AddItemToOrderUseCase {
   constructor(
     private orderRepository: OrderRepository,
     private pricingService: PricingService,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private logger: Logger
   ) {}
 
   async execute(dto: AddItemToOrderDTO): Promise<Result<void, AppError>> {
+    this.logger.info('Executing AddItemToOrderUseCase', { orderId: dto.orderId, sku: dto.sku, quantity: dto.quantity });
+
     try {
       // 1. Validar el DTO
       if (!dto.orderId || dto.orderId.trim().length === 0) {
@@ -46,6 +50,7 @@ export class AddItemToOrderUseCase {
       }
 
       if (orderResult.value === null) {
+        this.logger.warn('Order not found', { orderId: dto.orderId });
         const notFoundError = new NotFoundError(`Orden con ID ${dto.orderId} no encontrada`);
         return fail(new AppError(notFoundError));
       }
@@ -67,6 +72,7 @@ export class AddItemToOrderUseCase {
       }
 
       // 5. Obtener precio del servicio de precios
+      this.logger.debug('Fetching price from pricing service', { sku: dto.sku, currency: order.currency.toString() });
       const priceResult = await this.pricingService.getPriceForSku(
         skuResult.value.toString(),
         order.currency.toString()
@@ -88,6 +94,7 @@ export class AddItemToOrderUseCase {
       if (!addItemResult.success) {
         // Map domain errors to specific types
         const errorMessage = addItemResult.error;
+        this.logger.warn('Domain validation failed when adding item', { orderId: dto.orderId, sku: dto.sku, error: errorMessage });
         if (errorMessage.includes('estado')) {
           const conflictError = new ConflictError(errorMessage);
           return fail(new AppError(conflictError));
@@ -110,6 +117,7 @@ export class AddItemToOrderUseCase {
       // 9. Publicar eventos de dominio
       const events = order.getDomainEvents();
       if (events.length > 0) {
+        this.logger.debug('Publishing domain events', { orderId: dto.orderId, eventCount: events.length });
         const publishResult = await this.eventBus.publish(events);
         if (!publishResult.success) {
           const infraError = new InfraError(publishResult.error);
@@ -120,11 +128,12 @@ export class AddItemToOrderUseCase {
       // 10. Limpiar eventos
       order.clearDomainEvents();
 
+      this.logger.info('Item added to order successfully', { orderId: dto.orderId, sku: dto.sku, quantity: dto.quantity });
       return ok(undefined);
     } catch (error) {
-      const infraError = new InfraError(
-        error instanceof Error ? error.message : 'Unknown error while adding item'
-      );
+      const err = error instanceof Error ? error : new Error('Unknown error while adding item');
+      this.logger.error('Unexpected error in AddItemToOrderUseCase', err, { orderId: dto.orderId, sku: dto.sku });
+      const infraError = new InfraError(err.message);
       return fail(new AppError(infraError));
     }
   }

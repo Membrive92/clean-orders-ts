@@ -4,6 +4,7 @@ import type { CreateOrderUseCase } from '../../../application/use-cases/CreateOr
 import type { AddItemToOrderUseCase } from '../../../application/use-cases/AddItemToOrderUseCase.js';
 import type { CreateOrderDTO } from '../../../application/dtos/CreateOrderDTO.js';
 import type { AddItemToOrderDTO } from '../../../application/dtos/AddItemToOrderDTO.js';
+import type { Logger } from '../../loggin/PinoLogger.js';
 
 /**
  * Order controller for Fastify
@@ -12,7 +13,8 @@ import type { AddItemToOrderDTO } from '../../../application/dtos/AddItemToOrder
 export class OrderController {
   constructor(
     private createOrderUseCase: CreateOrderUseCase,
-    private addItemToOrderUseCase: AddItemToOrderUseCase
+    private addItemToOrderUseCase: AddItemToOrderUseCase,
+    private logger: Logger
   ) {}
 
   /**
@@ -20,11 +22,14 @@ export class OrderController {
    * Crear una nueva orden
    */
   async createOrder(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    try {
-      const { orderId, currency } = request.body as CreateOrderDTO;
+    const { orderId, currency } = request.body as CreateOrderDTO;
 
+    this.logger.info('Creating order', { orderId, currency });
+
+    try {
       // Validar datos de entrada
       if (!orderId || !currency) {
+        this.logger.warn('Validation failed: missing required fields', { orderId, currency });
         reply.code(400).send({
           error: 'VALIDATION_ERROR',
           message: 'orderId y currency son requeridos',
@@ -40,6 +45,13 @@ export class OrderController {
         const errorType = this.getErrorType(error);
         const statusCode = this.getStatusCode(errorType);
 
+        this.logger.error('Failed to create order', error.type as Error, {
+          orderId,
+          currency,
+          errorType,
+          errorMessage: error.message,
+        });
+
         reply.code(statusCode).send({
           error: errorType,
           message: error.message,
@@ -47,12 +59,14 @@ export class OrderController {
         return;
       }
 
+      this.logger.info('Order created successfully', { orderId });
+
       reply.code(201).send({
         success: true,
         data: result.value,
       });
     } catch (error) {
-      this.handleUnexpectedError(error, reply);
+      this.handleUnexpectedError(error, reply, { orderId, currency });
     }
   }
 
@@ -61,12 +75,15 @@ export class OrderController {
    * Add an item to an existing order
    */
   async addItemToOrder(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    try {
-      const { orderId } = request.params as { orderId: string };
-      const { sku, quantity } = request.body as Omit<AddItemToOrderDTO, 'orderId'>;
+    const { orderId } = request.params as { orderId: string };
+    const { sku, quantity } = request.body as Omit<AddItemToOrderDTO, 'orderId'>;
 
+    this.logger.info('Adding item to order', { orderId, sku, quantity });
+
+    try {
       // Validar datos de entrada
       if (!orderId || !sku || quantity === undefined) {
+        this.logger.warn('Validation failed: missing required fields', { orderId, sku, quantity });
         reply.code(400).send({
           error: 'VALIDATION_ERROR',
           message: 'orderId, sku y quantity son requeridos',
@@ -86,6 +103,14 @@ export class OrderController {
         const errorType = this.getErrorType(error);
         const statusCode = this.getStatusCode(errorType);
 
+        this.logger.error('Failed to add item to order', error.type as Error, {
+          orderId,
+          sku,
+          quantity,
+          errorType,
+          errorMessage: error.message,
+        });
+
         reply.code(statusCode).send({
           error: errorType,
           message: error.message,
@@ -93,12 +118,14 @@ export class OrderController {
         return;
       }
 
+      this.logger.info('Item added to order successfully', { orderId, sku, quantity });
+
       reply.code(200).send({
         success: true,
         message: 'Item agregado a la orden',
       });
     } catch (error) {
-      this.handleUnexpectedError(error, reply);
+      this.handleUnexpectedError(error, reply, { orderId, sku, quantity });
     }
   }
 
@@ -108,9 +135,10 @@ export class OrderController {
   static registerRoutes(
     fastify: FastifyInstance,
     createOrderUseCase: CreateOrderUseCase,
-    addItemToOrderUseCase: AddItemToOrderUseCase
+    addItemToOrderUseCase: AddItemToOrderUseCase,
+    logger: Logger
   ): void {
-    const controller = new OrderController(createOrderUseCase, addItemToOrderUseCase);
+    const controller = new OrderController(createOrderUseCase, addItemToOrderUseCase, logger);
 
     fastify.post('/orders', async (request, reply) => {
       await controller.createOrder(request, reply);
@@ -161,9 +189,12 @@ export class OrderController {
   /**
    * Manejar errores inesperados
    */
-  private handleUnexpectedError(error: unknown, reply: FastifyReply): void {
+  private handleUnexpectedError(error: unknown, reply: FastifyReply, context?: Record<string, unknown>): void {
     const message = error instanceof Error ? error.message : 'Error desconocido';
-    console.error('Error inesperado:', error);
+    const err = error instanceof Error ? error : new Error(message);
+
+    this.logger.error('Unexpected error in controller', err, context);
+
     reply.code(500).send({
       error: 'INTERNAL_SERVER_ERROR',
       message,

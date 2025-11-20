@@ -77,7 +77,7 @@ describe('Outbox Pattern - Integration Tests', () => {
 
       expect(rows.rows.length).toBe(1);
       expect(rows.rows[0].event_type).toBe('OrderCreated');
-      expect(rows.rows[0].aggregate_type).toBe('Test');
+      expect(rows.rows[0].aggregate_type).toBe('Order'); // TestEvent uses Order as aggregate type from the domain
       expect(rows.rows[0].published_at).toBeNull();
     } finally {
       client.release();
