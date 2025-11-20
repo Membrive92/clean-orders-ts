@@ -271,6 +271,8 @@ POST /orders/:orderId/confirm
 
 ### Example with PowerShell
 
+**⚠️ Important:** Run these commands in a **separate PowerShell terminal** (not the same one running the server) to avoid signal conflicts.
+
 ```powershell
 # Create order
 $body = @{ currency = "USD" } | ConvertTo-Json

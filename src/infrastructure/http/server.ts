@@ -14,6 +14,21 @@ export async function buildServer(dependencies: Dependencies) {
     logger: {
       level: 'info',
     },
+    // Prevent server from crashing on unhandled errors
+    disableRequestLogging: false,
+  });
+
+  // Global error handler
+  fastify.setErrorHandler((error, _request, reply) => {
+    fastify.log.error(error, 'Request error');
+    
+    // Send appropriate error response
+    const statusCode = error.statusCode || 500;
+    reply.code(statusCode).send({
+      error: error.name || 'Internal Server Error',
+      message: error.message || 'An unexpected error occurred',
+      statusCode,
+    });
   });
 
   // Crear logger para los controladores

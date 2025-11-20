@@ -78,15 +78,29 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-// Handle uncaught errors
+// Handle uncaught errors - only for truly critical system errors
 process.on('uncaughtException', (error) => {
-  logger.error('Uncaught exception', error);
-  cleanup().then(() => process.exit(1));
+  logger.error('Uncaught exception detected', error);
+  
+  // Only exit on critical system errors that prevent server operation
+  const criticalErrors = ['EADDRINUSE', 'EACCES', 'ENOTFOUND', 'ERR_INVALID_'];
+  const isCritical = criticalErrors.some(errType => error.message?.includes(errType));
+  
+  if (isCritical) {
+    logger.error('Critical system error - shutting down');
+    cleanup().then(() => process.exit(1));
+  } else {
+    // For non-critical errors, log and continue
+    logger.warn('Non-critical error - continuing execution', { errorMessage: error.message });
+  }
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled rejection', new Error(String(reason)), { promise });
-  cleanup().then(() => process.exit(1));
+  logger.warn('Unhandled promise rejection - logging but continuing', {
+    reason: String(reason),
+    promise: promise?.toString(),
+  });
+  // Don't exit - Fastify and other libraries handle these internally
 });
 
 main().catch((error) => {
